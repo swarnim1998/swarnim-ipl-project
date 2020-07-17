@@ -1,63 +1,72 @@
-const csvToJson= require('csvtojson');
-const fs= require('fs');
-const { parse } = require('path');
+const csvToJson = require("csvtojson");
+const fs = require("fs");
 
-exports.top10Bowlers=()=>{
+exports.getTop10Bowlers = () => {
+  csvToJson()
+    .fromFile("../data/matches.csv")
+    .then((matches) => {
+      // matchId contains the Id of 2015 matches
+      let matchId = [];
+      matches.forEach((currentrent) => {
+        if (currentrent.season === "2015") {
+          matchId.push(currentrent.id);
+        }
+      });
 
-    csvToJson().fromFile('../data/matches.csv')
-    .then(matches=>{
-    
-        // matchId contains the Id of 2015 matches
-      let matchId=[];
-      for(key in matches)
-      {
-        if(matches[key].season==="2015")
-        {  
-          matchId.push(matches[key].id);
-        }     
-      }
+      csvToJson()
+        .fromFile("../data/deliveries.csv")
+        .then((deliveries) => {
+          // here first i calculate number of balls and runs per bowler
 
-      csvToJson().fromFile('../data/deliveries.csv')
-       .then(deliveries=>{
-        
-        // here first i calculate number of balls and runs per bowler   
-        let bowlers={};
-        let bowlerDetails={runs: 0,balls: 1}; 
-        for(key in deliveries)
-         {
-           let tmp=deliveries[key].bowler;
-           if(matchId.includes(deliveries[key].match_id))
-           {
-             if(bowlers[tmp])
-             {  
-               bowlers[tmp].runs=bowlers[tmp].runs+parseInt(deliveries[key].total_runs);
-               bowlers[tmp].balls=bowlers[tmp].balls+1;
-             }
-             else
-             {
-                let temp={...bowlerDetails};
-                temp.runs=parseInt(deliveries[key].total_runs);
-                bowlers[tmp]=temp;
-             }
-            }    
-         }
+          function findcurrentrent(arr, name) {
+            var ind = -1;
+            arr.forEach((value, index) => {
+              if (value.name === name) {
+                ind = index;
+              }
+            });
+            return ind;
+          }
 
-         
-         let result=[];
-         for(key in bowlers)
-         {
-           result.push({bowlerName: key,ecomy: (bowlers[key].runs/(bowlers[key].balls/6))});
-         }
-         
-         result.sort(function(a,b){
-           return a.ecomy-b.ecomy;
-         })
+          function getData(currentrent) {
+            return matchId.includes(currentrent.match_id);
+          }
 
-        result=result.slice(0,10);
-        
-        let data=JSON.stringify(result);  
-        fs.writeFileSync('../output/top10Bowlers.json',data);     
-       })
-           
-    })
-  }
+          let resultData = deliveries
+            .filter(getData)
+            .reduce((bowlers, current) => {
+              let tmp = current.bowler;
+              let index = findcurrentrent(bowlers, tmp);
+              if (index > -1) {
+                bowlers[index].runs =
+                  bowlers[index].runs + parseInt(current.total_runs);
+                bowlers[index].balls += 1;
+              } else {
+                let temp = {
+                  name: tmp,
+                  balls: 1,
+                  runs: parseInt(current.total_runs),
+                };
+                bowlers.push(temp);
+              }
+              return bowlers;
+            }, [])
+            .reduce((acc, current) => {
+              acc.push({
+                bowlerName: current.name,
+                economy: current.runs / (current.balls / 6),
+              });
+              return acc;
+            }, []);
+
+          resultData.sort(function (a, b) {
+            return a.economy - b.economy;
+          });
+
+          resultData = resultData.slice(0, 10);
+
+          let data = JSON.stringify(resultData);
+          fs.writeFileSync("../output/top10Bowlers.json", data);
+        });
+    });
+};

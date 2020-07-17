@@ -3,9 +3,9 @@ const que2 =require('./que2.js');
 const que3 =require('./que3.js');
 const que4 =require('./que4.js');
 
-que1.matchesPerYear();
+que1.getMatchesPerYear();
 
-que2.matchesWonPerYear();
+que2.getMatchesWonPerYear();
 
-que3.extraRunPerTeam();
-que4.top10Bowlers();
+que3.getExtraRunPerTeam();
+que4.getTop10Bowlers();

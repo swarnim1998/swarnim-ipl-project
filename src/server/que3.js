@@ -1,39 +1,36 @@
-const csvToJson= require('csvtojson');
-const fs= require('fs');
-const { parse } = require('path');
+const csvToJson = require("csvtojson");
+const fs = require("fs");
 
+exports.getExtraRunPerTeam = () => {
+  let matchId = [];
 
-exports.extraRunPerTeam=()=>{
-  let matchId=[];
-
- // matchId  contains the id of 2016 matches
-  csvToJson().fromFile('../data/matches.csv')
-  .then(matches=>{
-    
-    for(key in matches)
-    {
-      if(matches[key].season==="2016")
-      {  
-        matchId.push(matches[key].id);
-      }     
-    }
-  
-    
-    csvToJson().fromFile('../data/deliveries.csv')
-    .then(deliveries=>{
-      let resultData={};
-       
-      for(key in deliveries)   
-      {
-        if(matchId.includes(deliveries[key].match_id))
-        {
-          let p=deliveries[key].batting_team;
-          resultData[p]=resultData[p]? resultData[p]+parseInt(deliveries[key].extra_runs):parseInt(deliveries[key].extra_runs); 
+  // matchId  contains the id of 2016 matches
+  csvToJson()
+    .fromFile("../data/matches.csv")
+    .then((matches) => {
+      matches.forEach((current) => {
+        if (current.season === "2016") {
+          matchId.push(current.id);
         }
-      }
+      });
 
-      let data=JSON.stringify(resultData);  
-      fs.writeFileSync('../output/extraRunsPerTeam.json',data);   
-    })
-  }) 
-}
+      csvToJson()
+        .fromFile("../data/deliveries.csv")
+        .then((deliveries) => {
+          let resultData = deliveries
+            .filter((current) => {
+              return matchId.includes(current.match_id);
+            })
+            .reduce((acc, current) => {
+              let p = current.bowling_team;
+              acc[p] = acc[p]
+                ? acc[p] + parseInt(current.extra_runs)
+                : parseInt(current.extra_runs);
+              return acc;
+            }, {});
+
+          let data = JSON.stringify(resultData);
+          fs.writeFileSync("../output/extraRunsPerTeam.json", data);
+        });
+    });
+};
