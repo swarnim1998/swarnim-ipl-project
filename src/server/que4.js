@@ -1,3 +1,5 @@
+/* eslint-disable no-param-reassign */
+/* eslint-disable operator-assignment */
 const csvToJson = require("csvtojson");
 const fs = require("fs");
 
@@ -17,9 +19,9 @@ exports.getTop10Bowlers = () => {
         .fromFile("../data/deliveries.csv")
         .then((deliveries) => {
           // here first i calculate number of balls and runs per bowler
-
+          console.log();
           function findcurrentrent(arr, name) {
-            var ind = -1;
+            let ind = -1;
             arr.forEach((value, index) => {
               if (value.name === name) {
                 ind = index;
@@ -35,8 +37,8 @@ exports.getTop10Bowlers = () => {
           let resultData = deliveries
             .filter(getData)
             .reduce((bowlers, current) => {
-              let tmp = current.bowler;
-              let index = findcurrentrent(bowlers, tmp);
+              const tmp = current.bowler;
+              const index = findcurrentrent(bowlers, tmp);
               if (index > -1) {
                 bowlers[index].runs =
                   bowlers[index].runs + parseInt(current.total_runs);
