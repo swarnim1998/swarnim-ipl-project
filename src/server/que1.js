@@ -1,7 +1,6 @@
 const csvToJson = require("csvtojson");
 const fs = require("fs");
 
-
 exports.getMatchesPerYear = () => {
   csvToJson()
     .fromFile("../data/matches.csv")
